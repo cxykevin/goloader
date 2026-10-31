@@ -13,7 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/pkujhd/goloader/objabi/symkind"
+	"github.com/cxykevin/goloader/objabi/symkind"
 )
 
 type readAtSeeker struct {

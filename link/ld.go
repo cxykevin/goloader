@@ -10,12 +10,12 @@ import (
 	"strings"
 	"unsafe"
 
-	"github.com/pkujhd/goloader/constants"
-	"github.com/pkujhd/goloader/obj"
-	"github.com/pkujhd/goloader/objabi/funcalign"
-	"github.com/pkujhd/goloader/objabi/reloctype"
-	"github.com/pkujhd/goloader/objabi/symkind"
-	"github.com/pkujhd/goloader/stackobject"
+	"github.com/cxykevin/goloader/constants"
+	"github.com/cxykevin/goloader/obj"
+	"github.com/cxykevin/goloader/objabi/funcalign"
+	"github.com/cxykevin/goloader/objabi/reloctype"
+	"github.com/cxykevin/goloader/objabi/symkind"
+	"github.com/cxykevin/goloader/stackobject"
 )
 
 // ourself defined struct

@@ -9,10 +9,10 @@ import (
 	"strings"
 	"unsafe"
 
-	"github.com/pkujhd/goloader/constants"
+	"github.com/cxykevin/goloader/constants"
 
-	"github.com/pkujhd/goloader/mmap"
-	"github.com/pkujhd/goloader/obj"
+	"github.com/cxykevin/goloader/mmap"
+	"github.com/cxykevin/goloader/obj"
 )
 
 func isOverflowInt32(offset int) bool {

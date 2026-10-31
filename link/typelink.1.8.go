@@ -4,7 +4,7 @@
 package link
 
 import (
-	"github.com/pkujhd/goloader/constants"
+	"github.com/cxykevin/goloader/constants"
 )
 
 // !IMPORTANT: only init firstmodule type, avoid load multiple objs but unload non-sequence errors

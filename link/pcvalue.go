@@ -5,8 +5,8 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/pkujhd/goloader/constants"
-	"github.com/pkujhd/goloader/obj"
+	"github.com/cxykevin/goloader/constants"
+	"github.com/cxykevin/goloader/obj"
 )
 
 func dumpPCValue(b []byte, prefix string) {

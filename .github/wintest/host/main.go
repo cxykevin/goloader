@@ -23,7 +23,7 @@ import (
 
 	"hostkit"
 
-	"github.com/pkujhd/goloader"
+	"github.com/cxykevin/goloader"
 )
 
 type arrayFlags struct {

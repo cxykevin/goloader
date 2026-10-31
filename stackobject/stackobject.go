@@ -8,10 +8,10 @@ import (
 	"strings"
 	"unsafe"
 
-	"github.com/pkujhd/goloader/constants"
+	"github.com/cxykevin/goloader/constants"
 
-	"github.com/pkujhd/goloader/obj"
-	"github.com/pkujhd/goloader/objabi/dataindex"
+	"github.com/cxykevin/goloader/obj"
+	"github.com/cxykevin/goloader/objabi/dataindex"
 )
 
 // See reflect/value.go sliceHeader

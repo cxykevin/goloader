@@ -9,7 +9,7 @@ import (
 
 	_ "unsafe"
 
-	"github.com/pkujhd/goloader/obj"
+	"github.com/cxykevin/goloader/obj"
 )
 
 func addLinkName(symPtr map[string]uintptr) {

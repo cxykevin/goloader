@@ -6,7 +6,7 @@ package link
 import (
 	"unsafe"
 
-	"github.com/pkujhd/goloader/constants"
+	"github.com/cxykevin/goloader/constants"
 )
 
 func (t *_type) DescriptorSize() int { return _DescriptorSize(t) }

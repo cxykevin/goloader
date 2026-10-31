@@ -7,9 +7,9 @@ import (
 	"cmd/objfile/sys"
 	"fmt"
 
-	"github.com/pkujhd/goloader/constants"
-	"github.com/pkujhd/goloader/objabi/dataindex"
-	"github.com/pkujhd/goloader/objabi/reloctype"
+	"github.com/cxykevin/goloader/constants"
+	"github.com/cxykevin/goloader/objabi/dataindex"
+	"github.com/cxykevin/goloader/objabi/reloctype"
 )
 
 func (linker *Linker) addDeferReturn(_func *_func, module *moduledata) (err error) {

@@ -3,8 +3,8 @@ package goloader
 import (
 	"io"
 
-	"github.com/pkujhd/goloader/link"
-	"github.com/pkujhd/goloader/mmap"
+	"github.com/cxykevin/goloader/link"
+	"github.com/cxykevin/goloader/mmap"
 )
 
 type Linker link.Linker

@@ -11,7 +11,7 @@ import (
 	"runtime"
 	"unsafe"
 
-	"github.com/pkujhd/goloader/constants"
+	"github.com/cxykevin/goloader/constants"
 )
 
 type typeData struct {

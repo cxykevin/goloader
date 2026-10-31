@@ -6,7 +6,7 @@ package link
 import (
 	"unsafe"
 
-	"github.com/pkujhd/goloader/constants"
+	"github.com/cxykevin/goloader/constants"
 )
 
 // layout of Itab known to compilers

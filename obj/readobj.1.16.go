@@ -14,8 +14,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pkujhd/goloader/constants"
-	"github.com/pkujhd/goloader/objabi/symkind"
+	"github.com/cxykevin/goloader/constants"
+	"github.com/cxykevin/goloader/objabi/symkind"
 )
 
 func encodeSymRef(symref goobj.SymRef) string {

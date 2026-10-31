@@ -9,7 +9,7 @@ import (
 	"debug/pe"
 	"unsafe"
 
-	"github.com/pkujhd/goloader/constants"
+	"github.com/cxykevin/goloader/constants"
 )
 
 func getTypeLinkDataInMacho(machoFile *macho.File) ([]byte, int, error) {

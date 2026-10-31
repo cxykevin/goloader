@@ -7,7 +7,7 @@ import (
 	"cmd/objfile/gcprog"
 	"unsafe"
 
-	"github.com/pkujhd/goloader/constants"
+	"github.com/cxykevin/goloader/constants"
 )
 
 const (

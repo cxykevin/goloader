@@ -4,7 +4,7 @@
 package obj
 
 import (
-	"github.com/pkujhd/goloader/constants"
+	"github.com/cxykevin/goloader/constants"
 )
 
 func MarkReloc(text []byte, relocs []Reloc, offset int, archName string) {

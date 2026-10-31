@@ -3,7 +3,7 @@
 
 package link
 
-import "github.com/pkujhd/goloader/obj"
+import "github.com/cxykevin/goloader/obj"
 
 func adaptPCFile(linker *Linker, symbol *obj.ObjSymbol) {
 }

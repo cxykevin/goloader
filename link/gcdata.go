@@ -6,8 +6,8 @@ import (
 	"sort"
 	"unsafe"
 
-	"github.com/pkujhd/goloader/obj"
-	"github.com/pkujhd/goloader/objabi/symkind"
+	"github.com/cxykevin/goloader/obj"
+	"github.com/cxykevin/goloader/objabi/symkind"
 )
 
 func generateGcData(linker *Linker, codeModule *CodeModule, symbolMap map[string]uintptr, w *gcprog.Writer, sym *obj.Sym) error {

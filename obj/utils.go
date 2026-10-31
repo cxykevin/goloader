@@ -3,7 +3,7 @@ package obj
 import (
 	"strings"
 
-	"github.com/pkujhd/goloader/constants"
+	"github.com/cxykevin/goloader/constants"
 )
 
 func FindFileTab(fileName string, nameMap map[string]int, fileTab []uint32) int32 {

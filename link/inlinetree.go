@@ -3,9 +3,9 @@ package link
 import (
 	"unsafe"
 
-	"github.com/pkujhd/goloader/constants"
-	"github.com/pkujhd/goloader/obj"
-	"github.com/pkujhd/goloader/objabi/dataindex"
+	"github.com/cxykevin/goloader/constants"
+	"github.com/cxykevin/goloader/obj"
+	"github.com/cxykevin/goloader/objabi/dataindex"
 )
 
 func (linker *Linker) addInlineTree(_func *_func, symbol *obj.ObjSymbol) (err error) {

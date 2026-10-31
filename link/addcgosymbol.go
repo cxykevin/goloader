@@ -3,10 +3,10 @@ package link
 import (
 	"runtime"
 
-	"github.com/pkujhd/goloader/constants"
-	"github.com/pkujhd/goloader/libdl"
-	"github.com/pkujhd/goloader/obj"
-	"github.com/pkujhd/goloader/objabi/symkind"
+	"github.com/cxykevin/goloader/constants"
+	"github.com/cxykevin/goloader/libdl"
+	"github.com/cxykevin/goloader/obj"
+	"github.com/cxykevin/goloader/objabi/symkind"
 )
 
 func (linker *Linker) AddCgoSymbols(symPtr map[string]uintptr) error {
