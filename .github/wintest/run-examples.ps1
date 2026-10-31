@@ -1,6 +1,7 @@
 # Windows test matrix for goloader (Go 1.27).
 #
-#   powershell -ExecutionPolicy Bypass -File .\run-examples.ps1 -Repo C:\path\to\goloader
+#   powershell -ExecutionPolicy Bypass -File .\run-examples.ps1
+# Optional: -Repo <checkout> -Work <dir>
 #
 param(
     [string]$Repo = "",

@@ -1,7 +1,8 @@
 # Deeper Windows tests: host<->module boundaries, GC, finalizers, pprof,
 # load/unload stress, multi-module loads.
 #
-#   powershell -ExecutionPolicy Bypass -File .\run-deep.ps1 -Repo C:\path\to\goloader
+#   powershell -ExecutionPolicy Bypass -File .\run-deep.ps1
+# Optional: -Repo <checkout> -Work <dir>
 #
 param(
     [string]$Repo = "",
@@ -20,6 +21,13 @@ New-Item -ItemType Directory -Force -Path $Work | Out-Null
 
 $repoFwd = $Repo.Replace('\', '/')
 
+# The module path is whatever the checkout declares; the replace points it
+# back at this working tree, so a fork works without editing the script.
+Push-Location $Repo
+$modulePath = (& go list -m -f '{{.Path}}' | Out-String).Trim()
+Pop-Location
+if (-not $modulePath) { throw "cannot determine the module path of $Repo" }
+
 # Host program (module "host" plus local replace of goloader and hostkit).
 Push-Location "$Kit\host"
 @"
@@ -28,11 +36,11 @@ module host
 go 1.21
 
 require (
-	github.com/pkujhd/goloader v0.0.0
+	$modulePath v0.0.0
 	hostkit v0.0.0
 )
 
-replace github.com/pkujhd/goloader => $repoFwd
+replace $modulePath => $repoFwd
 
 replace hostkit => ./hostkit
 "@ | Set-Content -Encoding ascii go.mod
