@@ -55,12 +55,10 @@ jobs:
 
       - name: Examples
         run: |
-          $repo = (Get-Location).Path
-          & .\.github\wintest\run-examples.ps1 -Repo $repo -Work "$env:RUNNER_TEMP\goloader-win"
+          & .\.github\wintest\run-examples.ps1 -Work "$env:RUNNER_TEMP\goloader-win"
           if (-not $?) { exit 1 }
 
       - name: Deep tests
         run: |
-          $repo = (Get-Location).Path
-          & .\.github\wintest\run-deep.ps1 -Repo $repo -Work "$env:RUNNER_TEMP\goloader-deep"
+          & .\.github\wintest\run-deep.ps1 -Work "$env:RUNNER_TEMP\goloader-deep"
           if (-not $?) { exit 1 }

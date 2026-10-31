@@ -4,13 +4,18 @@
 #   powershell -ExecutionPolicy Bypass -File .\run-deep.ps1 -Repo C:\path\to\goloader
 #
 param(
-    [string]$Repo = "C:\goloader",
+    [string]$Repo = "",
     [string]$Kit = $PSScriptRoot,
     [string]$Work = "$env:TEMP\goloader-deep"
 )
 
 $ErrorActionPreference = "Stop"
 $env:GO111MODULE = "on"
+
+if (-not $Repo) {
+    # This script lives in <repo>\.github\wintest.
+    $Repo = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
+}
 New-Item -ItemType Directory -Force -Path $Work | Out-Null
 
 $repoFwd = $Repo.Replace('\', '/')

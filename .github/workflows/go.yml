@@ -54,15 +54,17 @@ jobs:
     - name: Build loader
       shell: bash
       run: |
-          go build github.com/pkujhd/goloader/examples/loader
+          cd "$GOPATH/src/github.com/$GITHUB_REPOSITORY"
+          go build ./examples/loader
 
     - name: Compile and test examples
       shell: bash
       env:
         USE_IMPORTCFG: ${{ matrix.go-second-version >= 20 }}
       run: |
+        cd "$GOPATH/src/github.com/$GITHUB_REPOSITORY"
         for example in const base gctest; do
-          src="$GOPATH/src/github.com/pkujhd/goloader/examples/$example/$example.go"
+          src="examples/$example/$example.go"
           if [ "$USE_IMPORTCFG" = "true" ]; then
             go list -export -deps -f '{{if .Export}}packagefile {{.ImportPath}}={{.Export}}{{end}}' "$src" > "importcfg_$example"
             go tool compile -importcfg "importcfg_$example" "$src"

@@ -3,13 +3,18 @@
 #   powershell -ExecutionPolicy Bypass -File .\run-examples.ps1 -Repo C:\path\to\goloader
 #
 param(
-    [string]$Repo = "C:\goloader",
+    [string]$Repo = "",
     [string]$Work = "$env:TEMP\goloader-win",
     [int]$Times = 2
 )
 
 $ErrorActionPreference = "Stop"
 $env:GO111MODULE = "on"
+
+if (-not $Repo) {
+    # This script lives in <repo>\.github\wintest.
+    $Repo = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
+}
 
 New-Item -ItemType Directory -Force -Path $Work | Out-Null
 

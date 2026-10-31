@@ -33,8 +33,9 @@ First, execute the following command, then do build and test. This is because Go
 ## Examples
 
 #### Build Loader:
+Run the commands from the repository root of your checkout.
 ```
-  go build github.com/pkujhd/goloader/examples/loader
+  go build ./examples/loader
 ```
 
 
@@ -43,32 +44,38 @@ First, execute the following command, then do build and test. This is because Go
 If use go module or go version >= 1.20
 ```
   export GO111MODULE=on
-  go list -export -deps -f '{{if .Export}}packagefile {{.ImportPath}}={{.Export}}{{end}}' $GOPATH/src/github.com/pkujhd/goloader/examples/schedule/schedule.go > importcfg
-  go tool compile -importcfg importcfg $GOPATH/src/github.com/pkujhd/goloader/examples/schedule/schedule.go
+  REPO=$(go list -m -f '{{.Dir}}')
+  go list -export -deps -f '{{if .Export}}packagefile {{.ImportPath}}={{.Export}}{{end}}' "$REPO/examples/schedule/schedule.go" > importcfg
+  go tool compile -importcfg importcfg "$REPO/examples/schedule/schedule.go"
   ./loader -o schedule.o -run main.main -times 10
 ```
 If use go path and go version < 1.20
 ```
   export GO111MODULE=auto
-  go tool compile $GOPATH/src/github.com/pkujhd/goloader/examples/schedule/schedule.go
+  REPO=$(pwd)
+  PKGDIR=$(go env GOPATH)/pkg/$(go env GOOS)_$(go env GOARCH)
+  go tool compile "$REPO/examples/schedule/schedule.go"
   ./loader -o schedule.o -run main.main -times 10
   
-  go install github.com/pkujhd/goloader/examples/basecontext
-  go tool compile -I $GOPATH/pkg/`go env GOOS`_`go env GOARCH`/ $GOPATH/src/github.com/pkujhd/goloader/examples/inter/inter.go
-  ./loader -o $GOPATH/pkg/`go env GOOS`_`go env GOARCH`/github.com/pkujhd/goloader/examples/basecontext.a:github.com/pkujhd/goloader/examples/basecontext -o inter.o
+  go install ./examples/basecontext
+  BCPKG=$(go list -f '{{.ImportPath}}' ./examples/basecontext)
+  go tool compile -I "$PKGDIR" "$REPO/examples/inter/inter.go"
+  ./loader -o "$PKGDIR/$BCPKG.a:$BCPKG" -o inter.o
 ```
 
 ## compile with goloaderbuilder
 
 #### compile only package archive
 ```
-./builder -f $GOPATH/src/github.com/pkujhd/goloader/examples/inter/inter.go -p inter -b
-./loader -o ./target/github.com/pkujhd/goloader/examples/inter/inter.a -run inter.main -times 10
+REPO=$(pwd)
+./builder -f "$REPO/examples/inter/inter.go" -p inter -b
+./loader -o "./target/$(go list -f '{{.ImportPath}}' ./examples/inter)/inter.a" -run inter.main -times 10
 ```
 
 #### compile with dependence packages
 ```
-./builder -e ../runner/runner -f $GOPATH/src/github.com/pkujhd/goloader/examples/inter/inter.go -p inter
+REPO=$(pwd)
+./builder -e ../runner/runner -f "$REPO/examples/inter/inter.go" -p inter
 ../runner/runner -f target/inter.goloader -r inter.main
 ```
 
