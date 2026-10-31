@@ -19,8 +19,11 @@ func Open(dllName string) (uintptr, error) {
 }
 
 func LookupSymbol(h uintptr, symName string) (uintptr, error) {
-	index := strings.Index(symName, "%")
-	symName = symName[:index]
+	// A dynamic import name may carry a version suffix introduced by the C
+	// toolchain ("name%version"); Windows exports are looked up by plain name.
+	if index := strings.Index(symName, "%"); index >= 0 {
+		symName = symName[:index]
+	}
 	dll := (*syscall.DLL)(unsafe.Pointer(h))
 	proc, err := dll.FindProc(symName)
 	if err != nil {
