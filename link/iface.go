@@ -22,10 +22,36 @@ type mutex struct {
 
 //go:inline
 func getTypeNameByItab(name string) (string, string) {
+	if typ, inter, ok := splitItabName(name); ok {
+		return constants.TypePrefix + inter, constants.TypePrefix + typ
+	}
 	result := strings.Split(name, ",")
+	if len(result) < 2 {
+		return constants.TypePrefix, constants.TypePrefix
+	}
 	typeName := constants.TypePrefix + strings.TrimPrefix(result[0], constants.ItabPrefix)
 	interTypeName := constants.TypePrefix + result[1]
 	return interTypeName, typeName
+}
+
+// splitItabName splits "go:itab.<type>,<interface>" at the comma separating
+// the two types. Commas inside type arguments or nested types are ignored.
+func splitItabName(name string) (typ, inter string, ok bool) {
+	name = strings.TrimPrefix(name, constants.ItabPrefix)
+	depth := 0
+	for i := 0; i < len(name); i++ {
+		switch name[i] {
+		case '[', '(', '{':
+			depth++
+		case ']', ')', '}':
+			depth--
+		case ',':
+			if depth == 0 {
+				return name[:i], name[i+1:], true
+			}
+		}
+	}
+	return "", "", false
 }
 
 //go:inline
@@ -106,6 +132,28 @@ func hasInvalidMethod(typ *_type, methods map[string]string) bool {
 		}
 	}
 	return false
+}
+
+// canonicalItab returns the itab the runtime associates with the concrete type
+// and the interface type named by an itab symbol. When both types come from the
+// host binary, ask the runtime for its itab (creating it if the host has not
+// needed it yet) so that interface values created by loaded code and by the
+// host compare equal. Otherwise use the itab stored in the loaded module.
+func (linker *Linker) canonicalItab(sym *obj.Sym, symPtr map[string]uintptr, dataBase int) uintptr {
+	if getitab != nil && symPtr != nil {
+		interName, typeName := getTypeNameByItab(sym.Name)
+		inter, interOK := symPtr[interName]
+		typ, typeOK := symPtr[typeName]
+		if interOK && typeOK && inter != 0 && typ != 0 {
+			if it := getitab((*interfacetype)(unsafe.Pointer(inter)), (*_type)(unsafe.Pointer(typ)), true); it != nil {
+				return uintptr(unsafe.Pointer(it))
+			}
+		}
+	}
+	if ptr, ok := symPtr[sym.Name]; ok {
+		return ptr
+	}
+	return uintptr(sym.Offset) + uintptr(dataBase)
 }
 
 /*

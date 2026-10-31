@@ -188,8 +188,15 @@ func (linker *Linker) adaptSymbolOffset(codeModule *CodeModule) {
 				}
 			}
 			if sym.Func != nil {
-				for index := range sym.Func.FuncData {
-					sym.Func.FuncData[index] += uintptr(segment.noPtrTypeDataLen + segment.noPtrItabDataLen)
+				for index, data := range sym.Func.FuncData {
+					// A zero entry means "no funcdata at this index".
+					// Shifting it would turn it into a bogus, non-nil
+					// table for the runtime (for example a bogus
+					// FUNCDATA_OpenCodedDeferInfo entry).
+					if data == 0 {
+						continue
+					}
+					sym.Func.FuncData[index] = data + uintptr(segment.noPtrTypeDataLen+segment.noPtrItabDataLen)
 				}
 			}
 		}
@@ -411,6 +418,7 @@ func (linker *Linker) readFuncData(symbol *obj.ObjSymbol, symPtr map[string]uint
 func (linker *Linker) addSymbolMap(symPtr map[string]uintptr, codeModule *CodeModule) (symbolMap map[string]uintptr, err error) {
 	symbolMap = make(map[string]uintptr)
 	segment := &codeModule.segment
+	needAddress, referenced := linker.symbolReferences()
 	for name, sym := range linker.SymMap {
 		if sym.Offset == constants.InvalidOffset {
 			if ptr, ok := symPtr[sym.Name]; ok {
@@ -418,6 +426,15 @@ func (linker *Linker) addSymbolMap(symPtr map[string]uintptr, codeModule *CodeMo
 			} else if addr, ok := symPtr[strings.TrimSuffix(name, constants.GOTPCRELSuffix)]; ok && isGOTPCRELName(name) {
 				symbolMap[name] = uintptr(segment.dataBase) + uintptr(segment.dataOff)
 				putAddressAddOffset(linker.Arch.ByteOrder, segment.dataByte, &segment.dataOff, uint64(addr))
+			} else if referenced[sym.Name] && !needAddress[sym.Name] {
+				// The symbol is only referenced by weak or metadata
+				// relocations (see relocNeedsSymbolAddress), so a missing
+				// definition resolves to zero just like in the gc linker.
+				// Go 1.27 emits such references to abstract methods, for
+				// example reflect.(*rtype).uncommon from the itab of
+				// reflect.Type and from generated go.shape wrappers, and
+				// no executable contains those methods.
+				symbolMap[name] = 0
 			} else {
 				symbolMap[name] = constants.InvalidHandleValue
 				return nil, fmt.Errorf("unresolve external:%s", sym.Name)
@@ -425,6 +442,8 @@ func (linker *Linker) addSymbolMap(symPtr map[string]uintptr, codeModule *CodeMo
 		} else if symkind.IsText(sym.Kind) {
 			symbolMap[name] = uintptr(sym.Offset + segment.codeBase)
 			codeModule.Syms[sym.Name] = symbolMap[name]
+		} else if isItabName(sym.Name) {
+			symbolMap[name] = linker.canonicalItab(sym, symPtr, segment.dataBase)
 		} else if isStringTypeName(sym.Name) {
 			symbolMap[name] = (*stringHeader)(unsafe.Pointer(linker.StringMap[name])).Data
 		} else if isNeedInitTaskInPlugin(name) {
@@ -438,6 +457,26 @@ func (linker *Linker) addSymbolMap(symPtr map[string]uintptr, codeModule *CodeMo
 		}
 	}
 	return symbolMap, err
+}
+
+// symbolReferences classifies the symbols referenced by relocations.
+// needAddress holds the names whose address is actually used by at least one
+// relocation; referenced holds every name mentioned by a relocation.
+// A symbol that is referenced but never needs its address only appears in weak
+// or metadata relocations (see relocNeedsSymbolAddress), so it may stay
+// unresolved without affecting the loaded code.
+func (linker *Linker) symbolReferences() (needAddress, referenced map[string]bool) {
+	needAddress = make(map[string]bool)
+	referenced = make(map[string]bool)
+	for _, sym := range linker.SymMap {
+		for _, loc := range sym.Reloc {
+			referenced[loc.SymName] = true
+			if relocNeedsSymbolAddress(loc.Type) {
+				needAddress[loc.SymName] = true
+			}
+		}
+	}
+	return needAddress, referenced
 }
 
 func (linker *Linker) addFuncTab(module *moduledata, _func *_func, symbolMap map[string]uintptr) (err error) {
@@ -636,10 +675,16 @@ func Load(linker *Linker, symPtr map[string]uintptr) (codeModule *CodeModule, er
 
 func UnresolvedSymbols(linker *Linker, symPtr map[string]uintptr) []string {
 	unresolvedSymbols := make([]string, 0)
+	needAddress, referenced := linker.symbolReferences()
 	for name, sym := range linker.SymMap {
 		if sym.Offset == constants.InvalidOffset {
 			if _, ok := linker.CgoImportMap[name]; !ok {
 				if _, ok := symPtr[sym.Name]; !ok {
+					if referenced[sym.Name] && !needAddress[sym.Name] {
+						// Only weak or metadata relocations reference
+						// this symbol, loading does not need it.
+						continue
+					}
 					nName := strings.TrimSuffix(name, constants.GOTPCRELSuffix)
 					if name != nName {
 						if _, ok := symPtr[nName]; !ok {

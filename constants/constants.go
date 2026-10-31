@@ -3,6 +3,7 @@ package constants
 // string match prefix/suffix
 const (
 	FunctionWrapperSuffix = "-fm"
+	WrappedFuncSuffix     = ".wrapinfo"
 	StkobjSuffix          = ".stkobj"
 	FileSymPrefix         = "gofile.."
 	GOTPCRELSuffix        = "·f"

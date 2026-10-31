@@ -12,6 +12,10 @@ func Parse(file, pkgPath string) ([]string, error) {
 	if err := pkg.Symbols(); err != nil {
 		return nil, err
 	}
+	// For Go >= 1.16 object files Symbols only fills the archive entries,
+	// the symbol table is built by AddSymIndex (normally called by
+	// ReadObj).
+	pkg.AddSymIndex(make(map[string]int))
 	symbols := make([]string, 0)
 	for _, sym := range pkg.Syms {
 		symbols = append(symbols, sym.Name)

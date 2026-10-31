@@ -3,6 +3,7 @@ package link
 import (
 	"encoding/binary"
 	"fmt"
+	"strings"
 
 	"github.com/pkujhd/goloader/constants"
 	"github.com/pkujhd/goloader/obj"
@@ -298,14 +299,12 @@ func (linker *Linker) relocate(codeModule *CodeModule, symbolMap, symPtr map[str
 	byteOrder := linker.Arch.ByteOrder
 	tlsOffset := uint32(tls.GetTLSOffset(linker.Arch, linker.Arch.PtrSize))
 	for _, symbol := range linker.SymMap {
-		interfaceTypeMap := getUseInterfaceTypeMap(symbol)
 		for _, loc := range symbol.Reloc {
+			// Itab symbols are resolved in addSymbolMap by canonicalItab,
+			// which returns the host itab when both the concrete type and
+			// the interface type belong to the host binary and the module
+			// itab otherwise.
 			symAddr := symbolMap[loc.SymName]
-			if isItabName(loc.SymName) && isUseInterfaceMethod(interfaceTypeMap, &loc) {
-				if sym, ok := linker.SymMap[loc.SymName]; ok {
-					symAddr = uintptr(sym.Offset + segment.dataBase)
-				}
-			}
 			relocByte := segment.dataByte
 			addrBase := segment.dataBase
 			if symkind.IsText(symbol.Kind) {
@@ -344,6 +343,15 @@ func (linker *Linker) relocate(codeModule *CodeModule, symbolMap, symPtr map[str
 							offset -= codeModule.dataLen
 						}
 						byteOrder.PutUint32(relocByte[loc.Offset:], uint32(offset))
+					} else if loc.Type == reloctype.R_WEAKADDROFF ||
+						strings.HasSuffix(symbol.Name, constants.WrappedFuncSuffix) {
+						// A weak relocation to a missing symbol resolves to
+						// zero. The record emitted for a method value wrapper
+						// (.wrapinfo) stores the start of the wrapped function
+						// relative to the text of its own module, which cannot
+						// describe a function of the host binary, so it is
+						// left at zero as well (= start of the loaded text).
+						byteOrder.PutUint32(relocByte[loc.Offset:], 0)
 					} else {
 						return fmt.Errorf("symName:%s relocateType:%s, symbol is not exist!\n", loc.SymName, reloctype.RelocTypeString(loc.Type))
 					}
@@ -372,19 +380,39 @@ func (linker *Linker) relocate(codeModule *CodeModule, symbolMap, symPtr map[str
 	return err
 }
 
-func getUseInterfaceTypeMap(symbol *obj.Sym) map[string]int {
-	typMap := make(map[string]int)
-	for _, l := range symbol.Reloc {
-		if l.Type == reloctype.R_USEIFACE || l.Type == reloctype.R_USEIFACEMETHOD {
-			typMap[l.SymName] = 0x1
-		}
+// relocIsMetadata reports whether a relocation of type t only carries metadata
+// for the linker (marking used types, interface methods, named methods and so
+// on) and never writes a symbol address into code or data.
+func relocIsMetadata(t int) bool {
+	switch t {
+	case reloctype.R_USETYPE,
+		reloctype.R_USEIFACE,
+		reloctype.R_USEIFACEMETHOD,
+		reloctype.R_USENAMEDMETHOD,
+		reloctype.R_ADDRCUOFF,
+		reloctype.R_KEEP,
+		reloctype.R_CALLIND:
+		return true
 	}
-	return typMap
+	return false
 }
 
-func isUseInterfaceMethod(typMap map[string]int, reloc *obj.Reloc) bool {
-	interTypeName, typeName := getTypeNameByItab(reloc.SymName)
-	_, interExist := typMap[interTypeName]
-	_, typExist := typMap[typeName]
-	return interExist && typExist
+// relocIsWeak reports whether a relocation of type t is allowed to remain
+// unresolved. As in the gc linker, a weak relocation to a symbol that is not
+// present in the object or the host binary resolves to zero.
+func relocIsWeak(t int) bool {
+	return !relocIsMetadata(t) && t&reloctype.R_WEAK != 0
+}
+
+// relocNeedsSymbolAddress reports whether a relocation of type t requires its
+// target symbol to have a definition. Metadata and weak relocations resolve
+// without one.
+//
+// Go 1.27 emits a weak address relocation for every method of the reflect.Type
+// interface in the go:itab symbol of the loaded object, and an R_USENAMEDMETHOD
+// metadata relocation in every generated go.shape wrapper. Both can reference
+// abstract methods such as reflect.(*rtype).uncommon that no executable
+// contains: the gc linker simply drops them, so loading must tolerate them too.
+func relocNeedsSymbolAddress(t int) bool {
+	return !relocIsMetadata(t) && !relocIsWeak(t)
 }
