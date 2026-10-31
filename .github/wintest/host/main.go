@@ -34,12 +34,13 @@ type arrayFlags struct {
 func (i *arrayFlags) String() string { return "files" }
 
 func (i *arrayFlags) Set(value string) error {
-	s := strings.Split(value, ":")
-	i.File = append(i.File, s[0])
-	var path string
-	if len(s) > 1 {
-		path = s[1]
+	file, path := value, ""
+	// A Windows object path starts with a drive letter, so only a colon
+	// that is not the drive separator can start the package path.
+	if n := strings.LastIndex(value, ":"); n >= 0 && !(n == 1 && (len(value) == 2 || value[2] == '\\' || value[2] == '/')) {
+		file, path = value[:n], value[n+1:]
 	}
+	i.File = append(i.File, file)
 	i.PkgPath = append(i.PkgPath, path)
 	return nil
 }

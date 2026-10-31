@@ -23,14 +23,24 @@ func (i *arrayFlags) String() string {
 }
 
 func (i *arrayFlags) Set(value string) error {
-	s := strings.Split(value, ":")
-	i.File = append(i.File, s[0])
-	var path string
-	if len(s) > 1 {
-		path = s[1]
-	}
+	file, path := splitObjPath(value)
+	i.File = append(i.File, file)
 	i.PkgPath = append(i.PkgPath, path)
 	return nil
+}
+
+// splitObjPath splits "-o file:pkgpath". A Windows object path starts with a
+// drive letter ("D:\dir\file.o"), so only a colon that is not the drive
+// separator can start the package path.
+func splitObjPath(value string) (file, pkgPath string) {
+	n := strings.LastIndex(value, ":")
+	if n < 0 {
+		return value, ""
+	}
+	if n == 1 && (len(value) == 2 || value[2] == '\\' || value[2] == '/') {
+		return value, ""
+	}
+	return value[:n], value[n+1:]
 }
 
 func main() {
