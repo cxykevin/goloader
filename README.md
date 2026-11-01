@@ -15,6 +15,8 @@ Goloader provides some information to the runtime and gc of Go, which allows it 
 
 Please note that Goloader is not a scripting engine. It reads the output of Go compiler and makes them runnable. All features of Go are supported, and run just as fast and lightweight as native Go code.
 
+Building a plugin system on top of Goloader? See [docs/plugin-adaptation.md](docs/plugin-adaptation.md) for an AI-oriented adaptation guide (Chinese).
+
 ## Comparison with plugin
 
 Goloader reuses the Go runtime, which makes it much smaller. And code loaded by Goloader is unloadable.
